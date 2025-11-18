@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "SnapTallyMobile",
+    "slug": "snaptallymobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.snaptallymobile.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "SnapTallyMobile needs access to your camera to scan price tags.",
+        "NSPhotoLibraryUsageDescription": "SnapTallyMobile needs access to your photo library to select price tag images.",
+        "NSLocationWhenInUseUsageDescription": "SnapTallyMobile needs your location to determine which store you're shopping at."
+      }
+    },
+    "android": {
+      "package": "com.snaptallymobile.app",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow SnapTallyMobile to access your camera to scan price tags."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow SnapTallyMobile to use your location to identify your shopping location."
+        }
+      ],
+      "expo-asset"
+    ]
+  }
+}
