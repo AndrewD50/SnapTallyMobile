@@ -37,7 +37,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci --legacy-peer-deps --include=dev
 
       - name: Build development APK
         run: eas build --platform android --profile development --non-interactive --no-wait
