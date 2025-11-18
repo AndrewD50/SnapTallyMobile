@@ -240,14 +240,17 @@ export default function SessionStartScreen({ navigation }: Props) {
         </View>
 
         {!showNewForm && (
-          <TouchableOpacity
-            style={styles.startButton}
-            onPress={() => setShowNewForm(true)}
-            activeOpacity={0.7}
-          >
-            <Plus size={24} color={colors.white} weight="bold" />
-            <Text style={styles.startButtonText}>Start New Shopping Trip</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={styles.startButton}
+              onPress={() => setShowNewForm(true)}
+              activeOpacity={0.7}
+            >
+              <Plus size={24} color={colors.white} weight="bold" />
+              <Text style={styles.startButtonText}>Start New Shopping Trip</Text>
+            </TouchableOpacity>
+
+          </>
         )}
 
         {!showNewForm && (

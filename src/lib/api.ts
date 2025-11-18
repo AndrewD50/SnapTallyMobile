@@ -61,6 +61,31 @@ export async function analyzePriceTag(imageUri: string, base64?: string): Promis
   };
 }
 
+export async function analyzePriceTagFromText(ocrText: string): Promise<PriceTagAnalysisResponse> {
+  const response = await fetch(`${API_BASE}/PriceTag/analyze-text`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ text: ocrText }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to analyze price tag from text: ${response.status} ${response.statusText} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  
+  return {
+    name: data.item || 'Unknown Item',
+    brand: data.brand || '',
+    price: typeof data.price === 'number' ? data.price : parseFloat(data.price) || 0,
+    weight: typeof data.weight === 'number' ? data.weight : parseFloat(data.weight) || 0,
+    ocrText: data.ocrText || ocrText,
+    allPrices: data.allPrices,
+    allItems: data.allItems,
+  };
+}
+
 export async function startShoppingSession(request: StartSessionRequest): Promise<ShoppingSession> {
   const response = await fetch(`${API_BASE}/Shop/start`, {
     method: 'POST',
@@ -241,7 +266,7 @@ export async function deleteSession(sessionId: string): Promise<void> {
   }
 }
 
-export async function updateSession(sessionId: string, data: { displayBudget?: boolean }): Promise<ShoppingSession> {
+export async function updateSession(sessionId: string, data: { displayBudget?: boolean; debugMode?: boolean }): Promise<ShoppingSession> {
   const response = await fetch(`${API_BASE}/Shop/${sessionId}`, {
     method: 'PATCH',
     headers,

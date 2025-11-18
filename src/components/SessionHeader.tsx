@@ -14,7 +14,7 @@ interface SessionHeaderProps {
   debugMode: boolean;
   onBack: () => void;
   onFinish?: () => void;
-  onToggleDebugMode?: (enabled: boolean) => void;
+  onToggleDebugMode?: () => void;
 }
 
 export function SessionHeader({
@@ -36,8 +36,8 @@ export function SessionHeader({
     
     pressStartTime.current = Date.now();
     const timer = setTimeout(() => {
-      onToggleDebugMode(!debugMode);
-      toast.success(!debugMode ? 'Debug mode ON' : 'Debug mode OFF');
+      onToggleDebugMode();
+      toast.success(debugMode ? 'Debug mode OFF' : 'Debug mode ON');
       setDebugModeTimer(null);
     }, 20000);
     setDebugModeTimer(timer);

@@ -33,6 +33,7 @@ export interface ShopSession {
   budgetVariance?: number | null
   isOverBudget?: boolean | null
   displayBudget?: boolean
+  debugMode?: boolean
   items: ShopItem[]
   status: 'active' | 'finalized'
   startedAt: number

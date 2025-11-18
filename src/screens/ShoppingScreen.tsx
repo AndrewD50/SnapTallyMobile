@@ -6,6 +6,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Switch,
+  TouchableOpacity,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
@@ -29,6 +31,8 @@ import { FinalizeModal } from '../components/FinalizeModal';
 import { colors, spacing, typography, shadows, borderRadius } from '../styles/theme';
 import { toast } from '../lib/toast';
 import { compressImage } from '../lib/image-compression-native';
+import { OCRService } from '../lib/ocr-service';
+import { OCRSettings } from '../lib/ocr-settings';
 
 type ShoppingScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Shopping'>;
 type ShoppingScreenRouteProp = RouteProp<RootStackParamList, 'Shopping'>;
@@ -48,9 +52,11 @@ export default function ShoppingScreen({ navigation, route }: Props) {
   const [debugMode, setDebugMode] = useState(false);
   const [lastScannedItemId, setLastScannedItemId] = useState<string | null>(null);
   const [showBudget, setShowBudget] = useState(false);
+  const [useLocalOCR, setUseLocalOCR] = useState(false);
 
   useEffect(() => {
     loadSession();
+    loadOCRSettings();
   }, [sessionId]);
 
   const loadSession = async () => {
@@ -58,11 +64,21 @@ export default function ShoppingScreen({ navigation, route }: Props) {
       const data = await getSession(sessionId);
       setSession(data);
       setShowBudget(data.displayBudget || false);
+      setDebugMode(data.debugMode || false);
     } catch (error) {
       toast.error('Failed to load session');
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadOCRSettings = async () => {
+    try {
+      const enabled = await OCRSettings.getUseLocalOCR();
+      setUseLocalOCR(enabled);
+    } catch (error) {
+      console.error('Failed to load OCR settings:', error);
     }
   };
 
@@ -74,6 +90,18 @@ export default function ShoppingScreen({ navigation, route }: Props) {
       console.error('Failed to update budget display setting:', error);
       // Revert on error
       setShowBudget(!value);
+    }
+  };
+
+  const handleToggleDebugMode = async () => {
+    const newDebugMode = !debugMode;
+    setDebugMode(newDebugMode);
+    try {
+      await updateSession(sessionId, { debugMode: newDebugMode });
+    } catch (error) {
+      console.error('Failed to update debug mode setting:', error);
+      // Revert on error
+      setDebugMode(!newDebugMode);
     }
   };
 
@@ -89,8 +117,13 @@ export default function ShoppingScreen({ navigation, route }: Props) {
       // Compress the image
       const compressed = await compressImage(imageUri);
 
-      // Analyze the price tag - pass base64 if available
-      const result = await analyzePriceTag(compressed.uri, compressed.base64);
+      // Analyze using OCRService (handles both local and API based on settings)
+      const result = await OCRService.analyzeImage(compressed.uri, compressed.base64);
+
+      // Show toast indicating which OCR was used
+      if (__DEV__) {
+        toast.success(`Analyzed with ${result.source === 'local' ? 'Local OCR' : 'API OCR'}`);
+      }
 
       // Add item to session
       const newItem = await addItemToSession(sessionId, {
@@ -314,7 +347,7 @@ export default function ShoppingScreen({ navigation, route }: Props) {
         debugMode={debugMode}
         onBack={() => navigation.goBack()}
         onFinish={handleFinalizeSession}
-        onToggleDebugMode={() => setDebugMode(prev => !prev)}
+        onToggleDebugMode={handleToggleDebugMode}
       />
 
       <BudgetDisplay
@@ -324,6 +357,36 @@ export default function ShoppingScreen({ navigation, route }: Props) {
         showBudget={showBudget}
         onToggleBudget={handleBudgetToggle}
       />
+
+      {/* Local OCR Toggle - Debug Mode Only */}
+      {__DEV__ && debugMode && (
+        <>
+          <View style={styles.ocrToggleContainer}>
+            <Text style={styles.ocrToggleLabel}>Local OCR</Text>
+            <Switch
+              value={useLocalOCR}
+              onValueChange={async (value) => {
+                setUseLocalOCR(value);
+                await OCRSettings.setUseLocalOCR(value);
+                toast.success(`Switched to ${value ? 'Local' : 'API'} OCR`);
+              }}
+              trackColor={{ false: '#767577', true: '#81b0ff' }}
+              thumbColor={useLocalOCR ? colors.primary : '#f4f3f4'}
+            />
+            <Text style={styles.ocrToggleStatus}>
+              {useLocalOCR ? '📱 Local' : '☁️ API'}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.batchOcrButton}
+            onPress={() => navigation.navigate('BatchOCRTest')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.batchOcrButtonText}>📊 Batch OCR (Process Thousands)</Text>
+          </TouchableOpacity>
+        </>
+      )}
 
       {/* Items List */}
       <ScrollView
@@ -430,5 +493,41 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  ocrToggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF9C4',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FBC02D',
+    gap: spacing.sm,
+  },
+  ocrToggleLabel: {
+    ...typography.bodyBold,
+    color: '#F57F17',
+    flex: 1,
+  },
+  ocrToggleStatus: {
+    ...typography.body,
+    color: '#F57F17',
+    fontWeight: '600',
+    marginLeft: spacing.xs,
+  },
+  batchOcrButton: {
+    backgroundColor: '#9C27B0',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginHorizontal: spacing.md,
+    marginVertical: spacing.xs,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    ...shadows.sm,
+  },
+  batchOcrButtonText: {
+    ...typography.body,
+    color: colors.white,
+    fontWeight: '600',
   },
 });
