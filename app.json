@@ -52,18 +52,7 @@
           "locationAlwaysAndWhenInUsePermission": "Allow SnapTallyMobile to use your location to identify your shopping location."
         }
       ],
-      "expo-asset",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "extraProguardRules": "",
-            "TextRecognition_compileSdkVersion": 36,
-            "TextRecognition_targetSdkVersion": 36,
-            "TextRecognition_buildToolsVersion": "36.0.0"
-          }
-        }
-      ]
+      "expo-asset"
     ],
     "extra": {
       "eas": {
