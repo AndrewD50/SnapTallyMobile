@@ -52,7 +52,15 @@
           "locationAlwaysAndWhenInUsePermission": "Allow SnapTallyMobile to use your location to identify your shopping location."
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "SnapTallyMobile needs camera access to scan price tags with real-time detection.",
+          "enableFrameProcessors": true,
+          "enableCodeScanner": false
+        }
+      ]
     ],
     "extra": {
       "eas": {
