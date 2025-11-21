@@ -24,6 +24,9 @@
     },
     "android": {
       "package": "com.snaptallymobile.app",
+      "compileSdkVersion": 36,
+      "targetSdkVersion": 36,
+      "minSdkVersion": 24,
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
